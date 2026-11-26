@@ -1,16 +1,69 @@
-# React + Vite
+# Asset QR Management — React SPA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Vite + React 18 app that uses the PHP API in `../api/`.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Login / logout (session + CSRF)
+- Add asset & generate QR (registry)
+- Search, dashboard, asset management
+- Item / office / location masters
+- IT Desktops, Laptops, Monitors (CRUD, stats, CSV, QR)
+- User management
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **PHP API**  
+   - Copy `../api/` to your host (or point Apache/Nginx at it).  
+   - Edit `api/config.php` (DB credentials, `CORS_ORIGINS`, `PUBLIC_BASE_URL`).  
+   - Import SQL dumps as in the main project README.  
+   - Keep original `index.php` public QR viewer for scan links.
 
-## Expanding the ESLint configuration
+2. **React**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+cd react-app
+npm install
+```
+
+3. **Dev**
+
+- Run PHP on port 8080 (example: `php -S localhost:8080 -t /path/to/project`).
+- Vite proxies `/api` → `http://localhost:8080` (see `vite.config.js`).
+
+```bash
+npm run dev
+```
+
+Open http://localhost:5173
+
+4. **Production build**
+
+```bash
+npm run build
+```
+
+Serve `dist/` under the same domain as the API (or set `VITE_API_BASE` to the absolute API URL and ensure CORS + cookies work).
+
+Optional env:
+
+```env
+VITE_API_BASE=https://yourdomain.com/api/index.php
+```
+
+## Auth flow
+
+1. `POST ?action=session` → CSRF token + optional `user_id`
+2. All other calls send `X-CSRF-Token` and cookies
+3. On 401, app reloads session / shows login
+
+## Project layout
+
+```
+src/
+  api/client.js       # fetch wrapper
+  context/AuthContext.jsx
+  components/QrPanel.jsx
+  pages/              # one page per menu section
+  utils/helpers.js
+```
